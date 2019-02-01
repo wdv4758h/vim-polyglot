@@ -87,8 +87,8 @@ syn keyword BorderStyleKeyword none normal pixel contained
 syn match BorderStyle /^\s*\(new_window\|new_float\|default_border\|default_floating_border\)\s\+\(none\|\(normal\|pixel\)\(\s\+\d\+\)\?\)\s\?$/ contains=BorderStyleKeyword,number
 
 " Hide borders and edges
-syn keyword EdgeKeyword none vertical horizontal both contained
-syn match Edge /^\s*hide_edge_borders\s\+\(none\|vertical\|horizontal\|both\)\s\?$/ contains=EdgeKeyword
+syn keyword EdgeKeyword none vertical horizontal both smart contained
+syn match Edge /^\s*hide_edge_borders\s\+\(none\|vertical\|horizontal\|both\|smart\)\s\?$/ contains=EdgeKeyword
 
 " Arbitrary commands for specific windows (for_window)
 syn keyword CommandKeyword for_window contained
@@ -239,7 +239,7 @@ hi! def link FocusOnActivationKeyword Identifier
 hi! def link DrawingMarksKeyword Identifier
 hi! def link BlockKeyword Identifier
 hi! def link Variable Statement
-hi! def link ArbitraryCommand Ignore
+hi! def link ArbitraryCommand Type
 
 let b:current_syntax = "i3config"
 

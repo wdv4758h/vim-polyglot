@@ -141,9 +141,18 @@ function! s:setupTemplate()
   set ft=jinja2
 endfunction
 
-au BufNewFile,BufRead * if s:isAnsible() | set ft=yaml.ansible | en
-au BufNewFile,BufRead *.j2 call s:setupTemplate()
-au BufNewFile,BufRead hosts set ft=ansible_hosts
+augroup ansible_vim_ftyaml_ansible
+    au!
+    au BufNewFile,BufRead * if s:isAnsible() | set ft=yaml.ansible | en
+augroup END
+augroup ansible_vim_ftjinja2
+    au!
+    au BufNewFile,BufRead *.j2 call s:setupTemplate()
+augroup END
+augroup ansible_vim_fthosts
+    au!
+    au BufNewFile,BufRead hosts set ft=ansible_hosts
+augroup END
   augroup end
 endif
 
@@ -242,20 +251,20 @@ endif
 
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'dockerfile') == -1
   augroup filetypedetect
+  " dockerfile, from docker-compose.vim in ekalinin/Dockerfile.vim
+" docker-compose.yml
+autocmd BufRead,BufNewFile docker-compose*.{yaml,yml}* set ft=yaml.docker-compose
+  augroup end
+endif
+
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'dockerfile') == -1
+  augroup filetypedetect
   " dockerfile, from Dockerfile.vim in ekalinin/Dockerfile.vim
 " Dockerfile
 autocmd BufRead,BufNewFile Dockerfile set ft=Dockerfile
 autocmd BufRead,BufNewFile Dockerfile* set ft=Dockerfile
 autocmd BufRead,BufNewFile *.dock set ft=Dockerfile
 autocmd BufRead,BufNewFile *.[Dd]ockerfile set ft=Dockerfile
-  augroup end
-endif
-
-if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'dockerfile') == -1
-  augroup filetypedetect
-  " dockerfile, from docker-compose.vim in ekalinin/Dockerfile.vim
-" docker-compose.yml
-autocmd BufRead,BufNewFile docker-compose*.{yaml,yml}* set ft=yaml.docker-compose
   augroup end
 endif
 
@@ -363,45 +372,19 @@ if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'go') == -1
 let s:cpo_save = &cpo
 set cpo&vim
 
-" We take care to preserve the user's fileencodings and fileformats,
-" because those settings are global (not buffer local), yet we want
-" to override them for loading Go files, which are defined to be UTF-8.
-let s:current_fileformats = ''
-let s:current_fileencodings = ''
-
-" define fileencodings to open as utf-8 encoding even if it's ascii.
-function! s:gofiletype_pre(type)
-  let s:current_fileformats = &g:fileformats
-  let s:current_fileencodings = &g:fileencodings
-  set fileencodings=utf-8 fileformats=unix
-  let &l:filetype = a:type
-endfunction
-
-" restore fileencodings as others
-function! s:gofiletype_post()
-  let &g:fileformats = s:current_fileformats
-  let &g:fileencodings = s:current_fileencodings
-endfunction
-
 " Note: should not use augroup in ftdetect (see :help ftdetect)
-au BufNewFile *.go setfiletype go | if &modifiable | setlocal fileencoding=utf-8 fileformat=unix | endif
-au BufRead *.go call s:gofiletype_pre("go")
-au BufReadPost *.go call s:gofiletype_post()
-
-au BufNewFile *.s setfiletype asm | if &modifiable | setlocal fileencoding=utf-8 fileformat=unix | endif
-au BufRead *.s call s:gofiletype_pre("asm")
-au BufReadPost *.s call s:gofiletype_post()
-
-au BufRead,BufNewFile *.tmpl set filetype=gohtmltmpl
+au BufRead,BufNewFile *.go setfiletype go
+au BufRead,BufNewFile *.s setfiletype asm
+au BufRead,BufNewFile *.tmpl setfiletype gohtmltmpl
 
 " remove the autocommands for modsim3, and lprolog files so that their
 " highlight groups, syntax, etc. will not be loaded. *.MOD is included, so
 " that on case insensitive file systems the module2 autocmds will not be
 " executed.
-au! BufNewFile,BufRead *.mod,*.MOD
+au! BufRead,BufNewFile *.mod,*.MOD
 " Set the filetype if the first non-comment and non-blank line starts with
 " 'module <path>'.
-au BufNewFile,BufRead go.mod call s:gomod()
+au BufRead,BufNewFile go.mod call s:gomod()
 
 fun! s:gomod()
   for l:i in range(1, line('$'))
@@ -411,7 +394,7 @@ fun! s:gomod()
     endif
 
     if l:l =~# '^module .\+'
-      set filetype=gomod
+      setfiletype gomod
     endif
 
     break
@@ -663,9 +646,14 @@ endif
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'markdown') == -1
   augroup filetypedetect
   " markdown, from markdown.vim in plasticboy/vim-markdown:_SYNTAX
+if !has('patch-7.4.480')
+    " Before this patch, vim used modula2 for .md.
+    au! filetypedetect BufRead,BufNewFile *.md
+endif
+
 " markdown filetype file
-au BufRead,BufNewFile *.{md,mdown,mkd,mkdn,markdown,mdwn} set filetype=markdown
-au BufRead,BufNewFile *.{md,mdown,mkd,mkdn,markdown,mdwn}.{des3,des,bf,bfa,aes,idea,cast,rc2,rc4,rc5,desx} set filetype=markdown
+au BufRead,BufNewFile *.{md,mdown,mkd,mkdn,markdown,mdwn} setfiletype markdown
+au BufRead,BufNewFile *.{md,mdown,mkd,mkdn,markdown,mdwn}.{des3,des,bf,bfa,aes,idea,cast,rc2,rc4,rc5,desx} setfiletype markdown
   augroup end
 endif
 
@@ -925,54 +913,6 @@ endif
 
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'ruby') == -1
   augroup filetypedetect
-  " ruby, from ruby.vim in vim-ruby/vim-ruby
-" Officially distributed filetypes
-
-" Support functions {{{
-function! s:setf(filetype) abort
-  if &filetype !~# '\<'.a:filetype.'\>'
-    let &filetype = a:filetype
-  endif
-endfunction
-
-func! s:StarSetf(ft)
-  if expand("<amatch>") !~ g:ft_ignore_pat
-    exe 'setf ' . a:ft
-  endif
-endfunc
-" }}}
-
-" HTML with Ruby - eRuby
-au BufNewFile,BufRead *.erb,*.rhtml				call s:setf('eruby')
-
-" Interactive Ruby shell
-au BufNewFile,BufRead .irbrc,irbrc				call s:setf('ruby')
-
-" Ruby
-au BufNewFile,BufRead *.rb,*.rbw,*.gemspec			call s:setf('ruby')
-
-" Rackup
-au BufNewFile,BufRead *.ru					call s:setf('ruby')
-
-" Bundler
-au BufNewFile,BufRead Gemfile					call s:setf('ruby')
-
-" Ruby on Rails
-au BufNewFile,BufRead *.builder,*.rxml,*.rjs,*.ruby		call s:setf('ruby')
-
-" Rakefile
-au BufNewFile,BufRead [rR]akefile,*.rake			call s:setf('ruby')
-au BufNewFile,BufRead [rR]akefile*				call s:StarSetf('ruby')
-
-" Rantfile
-au BufNewFile,BufRead [rR]antfile,*.rant			call s:setf('ruby')
-
-" vim: nowrap sw=2 sts=2 ts=8 noet fdm=marker:
-  augroup end
-endif
-
-if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'ruby') == -1
-  augroup filetypedetect
   " ruby, from ruby_extra.vim in vim-ruby/vim-ruby
 " All other filetypes
 
@@ -1043,12 +983,60 @@ au BufNewFile,BufRead [vV]agrantfile		call s:setf('ruby')
   augroup end
 endif
 
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'ruby') == -1
+  augroup filetypedetect
+  " ruby, from ruby.vim in vim-ruby/vim-ruby
+" Officially distributed filetypes
+
+" Support functions {{{
+function! s:setf(filetype) abort
+  if &filetype !~# '\<'.a:filetype.'\>'
+    let &filetype = a:filetype
+  endif
+endfunction
+
+func! s:StarSetf(ft)
+  if expand("<amatch>") !~ g:ft_ignore_pat
+    exe 'setf ' . a:ft
+  endif
+endfunc
+" }}}
+
+" HTML with Ruby - eRuby
+au BufNewFile,BufRead *.erb,*.rhtml				call s:setf('eruby')
+
+" Interactive Ruby shell
+au BufNewFile,BufRead .irbrc,irbrc				call s:setf('ruby')
+
+" Ruby
+au BufNewFile,BufRead *.rb,*.rbw,*.gemspec			call s:setf('ruby')
+
+" Rackup
+au BufNewFile,BufRead *.ru					call s:setf('ruby')
+
+" Bundler
+au BufNewFile,BufRead Gemfile					call s:setf('ruby')
+
+" Ruby on Rails
+au BufNewFile,BufRead *.builder,*.rxml,*.rjs,*.ruby		call s:setf('ruby')
+
+" Rakefile
+au BufNewFile,BufRead [rR]akefile,*.rake			call s:setf('ruby')
+au BufNewFile,BufRead [rR]akefile*				call s:StarSetf('ruby')
+
+" Rantfile
+au BufNewFile,BufRead [rR]antfile,*.rant			call s:setf('ruby')
+
+" vim: nowrap sw=2 sts=2 ts=8 noet fdm=marker:
+  augroup end
+endif
+
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'rust') == -1
   augroup filetypedetect
   " rust, from rust.vim in rust-lang/rust.vim
 " vint: -ProhibitAutocmdWithNoGroup
 
-autocmd BufRead,BufNewFile *.rs set filetype=rust
+autocmd BufRead,BufNewFile *.rs setf rust
 autocmd BufRead,BufNewFile Cargo.toml if &filetype == "" | set filetype=cfg | endif
 
 " vim: set et sw=4 sts=4 ts=8:

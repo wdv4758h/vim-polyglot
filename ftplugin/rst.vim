@@ -5,7 +5,7 @@ if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'rst') == -1
 " Maintainer: Marshall Ward <marshall.ward@gmail.com>
 " Original Maintainer: Nikolai Weibull <now@bitwi.se>
 " Website: https://github.com/marshallward/vim-restructuredtext
-" Latest Revision: 2018-01-07
+" Latest Revision: 2018-12-29
 
 if exists("b:did_ftplugin")
     finish
@@ -14,6 +14,11 @@ let b:did_ftplugin = 1
 
 let s:cpo_save = &cpo
 set cpo&vim
+
+"Disable folding
+if !exists('g:rst_fold_enabled')
+  let g:rst_fold_enabled = 0
+endif
 
 let b:undo_ftplugin = "setl com< cms< et< fo<"
 

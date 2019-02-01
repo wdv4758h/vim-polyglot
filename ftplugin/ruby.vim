@@ -4,8 +4,7 @@ if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'ruby') == -1
 " Language:		Ruby
 " Maintainer:		Tim Pope <vimNOSPAM@tpope.org>
 " URL:			https://github.com/vim-ruby/vim-ruby
-" Release Coordinator:  Doug Kearns <dougkearns@gmail.com>
-" ----------------------------------------------------------------------------
+" Release Coordinator:	Doug Kearns <dougkearns@gmail.com>
 
 if (exists("b:did_ftplugin"))
   finish
@@ -35,7 +34,7 @@ if exists("loaded_matchit") && !exists("b:match_words")
 
   let b:match_skip =
 	\ "synIDattr(synID(line('.'),col('.'),0),'name') =~ '" .
-	\ "\\<ruby\\%(String\\|StringDelimiter\\|ASCIICode\\|Escape\\|" .
+	\ "\\<ruby\\%(String\\|StringDelimiter\\|Character\\|Escape\\|" .
         \ "Regexp\\|RegexpDelimiter\\|" .
 	\ "Interpolation\\|NoInterpolation\\|Comment\\|Documentation\\|" .
 	\ "ConditionalModifier\\|RepeatModifier\\|OptionalDo\\|" .
@@ -313,13 +312,16 @@ function! s:synid() abort
 endfunction
 
 function! s:wrap_i(back,forward) abort
-  execute 'norm k'.a:forward
+  execute 'norm! k'
+  execute 'norm '.a:forward
   let line = line('.')
   execute 'norm '.a:back
   if line('.') == line - 1
     return s:wrap_a(a:back,a:forward)
   endif
-  execute 'norm jV'.a:forward.'k'
+  execute 'norm! jV'
+  execute 'norm '.a:forward
+  execute 'norm! k'
 endfunction
 
 function! s:wrap_a(back,forward) abort
@@ -332,11 +334,15 @@ function! s:wrap_a(back,forward) abort
     -
   endwhile
   if exists('after')
-    execute 'norm V'.a:forward.'j'
+    execute 'norm! V'
+    execute 'norm '.a:forward
+    execute 'norm! j'
   elseif line('.') > 1 && getline(line('.')-1) =~# '^\s*$'
-    execute 'norm kV'.a:forward
+    execute 'norm! kV'
+    execute 'norm '.a:forward
   else
-    execute 'norm V'.a:forward
+    execute 'norm! V'
+    execute 'norm '.a:forward
   endif
 endfunction
 

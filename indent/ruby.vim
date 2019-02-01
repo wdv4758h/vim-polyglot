@@ -2,7 +2,8 @@ if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'ruby') == -1
   
 " Vim indent file
 " Language:		Ruby
-" Maintainer:		Nikolai Weibull <now at bitwi.se>
+" Maintainer:		Andrew Radev <andrey.radev@gmail.com>
+" Previous Maintainer:	Nikolai Weibull <now at bitwi.se>
 " URL:			https://github.com/vim-ruby/vim-ruby
 " Release Coordinator:	Doug Kearns <dougkearns@gmail.com>
 
@@ -59,7 +60,7 @@ let s:syng_stringdoc = s:syng_string + ['Documentation']
 " Syntax group names that are or delimit strings/symbols/regexes or are comments.
 let s:syng_strcom = s:syng_stringdoc +
       \ ['Regexp', 'RegexpDelimiter', 'RegexpEscape',
-      \ 'Symbol', 'StringDelimiter', 'ASCIICode', 'Comment']
+      \ 'Symbol', 'StringDelimiter', 'Character', 'Comment']
 
 " Expression used to check whether we should skip a match with searchpair().
 let s:skip_expr =
@@ -69,7 +70,7 @@ let s:skip_expr =
 let s:ruby_indent_keywords =
       \ '^\s*\zs\<\%(module\|class\|if\|for' .
       \   '\|while\|until\|else\|elsif\|case\|when\|unless\|begin\|ensure\|rescue' .
-      \   '\|\%(\K\k*[!?]\?\)\=\s*def\):\@!\>' .
+      \   '\|\%(\K\k*[!?]\?\s\+\)\=def\):\@!\>' .
       \ '\|\%([=,*/%+-]\|<<\|>>\|:\s\)\s*\zs' .
       \    '\<\%(if\|for\|while\|until\|case\|unless\|begin\):\@!\>'
 
@@ -83,7 +84,7 @@ let s:ruby_deindent_keywords =
 let s:end_start_regex =
       \ '\C\%(^\s*\|[=,*/%+\-|;{]\|<<\|>>\|:\s\)\s*\zs' .
       \ '\<\%(module\|class\|if\|for\|while\|until\|case\|unless\|begin' .
-      \   '\|\%(\K\k*[!?]\?\)\=\s*def\):\@!\>' .
+      \   '\|\%(\K\k*[!?]\?\s\+\)\=def\):\@!\>' .
       \ '\|\%(^\|[^.:@$]\)\@<=\<do:\@!\>'
 
 " Regex that defines the middle-match for the 'end' keyword.
