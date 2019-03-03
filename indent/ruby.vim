@@ -52,15 +52,26 @@ set cpo&vim
 
 " Syntax group names that are strings.
 let s:syng_string =
-      \ ['String', 'Interpolation', 'InterpolationDelimiter', 'NoInterpolation', 'StringEscape']
+      \ ['String', 'Interpolation', 'InterpolationDelimiter', 'StringEscape']
 
 " Syntax group names that are strings or documentation.
 let s:syng_stringdoc = s:syng_string + ['Documentation']
 
 " Syntax group names that are or delimit strings/symbols/regexes or are comments.
-let s:syng_strcom = s:syng_stringdoc +
-      \ ['Regexp', 'RegexpDelimiter', 'RegexpEscape',
-      \ 'Symbol', 'StringDelimiter', 'Character', 'Comment']
+let s:syng_strcom = s:syng_stringdoc + [
+      \ 'Character',
+      \ 'Comment',
+      \ 'HeredocDelimiter',
+      \ 'PercentRegexpDelimiter',
+      \ 'PercentStringDelimiter',
+      \ 'PercentSymbolDelimiter',
+      \ 'Regexp',
+      \ 'RegexpDelimiter',
+      \ 'RegexpEscape',
+      \ 'StringDelimiter',
+      \ 'Symbol',
+      \ 'SymbolDelimiter',
+      \ ]
 
 " Expression used to check whether we should skip a match with searchpair().
 let s:skip_expr =
@@ -147,7 +158,7 @@ let s:block_regex =
 let s:block_continuation_regex = '^\s*[^])}\t ].*'.s:block_regex
 
 " Regex that describes a leading operator (only a method call's dot for now)
-let s:leading_operator_regex = '^\s*[.]'
+let s:leading_operator_regex = '^\s*\%(&\=\.\)'
 
 " 2. GetRubyIndent Function {{{1
 " =========================
@@ -696,7 +707,10 @@ endfunction
 
 " Check if the character at lnum:col is inside a string delimiter
 function! s:IsInStringDelimiter(lnum, col) abort
-  return s:IsInRubyGroup(['StringDelimiter'], a:lnum, a:col)
+  return s:IsInRubyGroup(
+        \ ['HeredocDelimiter', 'PercentStringDelimiter', 'StringDelimiter'],
+        \ a:lnum, a:col
+        \ )
 endfunction
 
 function! s:IsAssignment(str, pos) abort

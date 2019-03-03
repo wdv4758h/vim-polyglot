@@ -16,6 +16,8 @@ augroup END
 
 let g:python_highlight_all = 1
 
+let g:vim_pandoc_syntax_exists = 1
+
 augroup filetypedetect
   if v:version < 704
     " NOTE: this line fixes an issue with the default system-wide lisp ftplugin
@@ -468,6 +470,21 @@ aug end
   augroup end
 endif
 
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'idris') == -1
+  augroup filetypedetect
+  " idris, from idris.vim in idris-hackers/idris-vim
+au BufNewFile,BufRead *.idr setf idris
+au BufNewFile,BufRead idris-response setf idris
+  augroup end
+endif
+
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'idris') == -1
+  augroup filetypedetect
+  " idris, from lidris.vim in idris-hackers/idris-vim
+au BufNewFile,BufRead *.lidr setf lidris
+  augroup end
+endif
+
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'jasmine') == -1
   augroup filetypedetect
   " jasmine, from jasmine.vim in glanotte/vim-jasmine
@@ -501,6 +518,26 @@ autocmd BufRead,BufNewFile Jenkinsfile* setf Jenkinsfile
 autocmd BufRead,BufNewFile *.jenkinsfile set ft=Jenkinsfile
 autocmd BufRead,BufNewFile *.jenkinsfile setf Jenkinsfile
 autocmd BufRead,BufNewFile *.Jenkinsfile setf Jenkinsfile
+  augroup end
+endif
+
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'jinga') == -1
+  augroup filetypedetect
+  " jinga, from jinja.vim in lepture/vim-jinja
+" Figure out which type of hilighting to use for html.
+fun! s:SelectHTML()
+  let n = 1
+  while n < 50 && n <= line("$")
+    " check for jinja
+    if getline(n) =~ '{{.*}}\|{%-\?\s*\(end.*\|extends\|block\|macro\|set\|if\|for\|include\|trans\)\>'
+      set ft=jinja.html
+      return
+    endif
+    let n = n + 1
+  endwhile
+endfun
+autocmd BufNewFile,BufRead *.html,*.htm call s:SelectHTML()
+autocmd BufNewFile,BufRead *.jinja2,*.j2,*.jinja,*.nunjucks,*.nunjs,*.njk set ft=jinja
   augroup end
 endif
 
@@ -932,6 +969,24 @@ au BufRead,BufNewFile *.raml set ft=raml
   augroup end
 endif
 
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'reason') == -1
+  augroup filetypedetect
+  " reason, from merlin.vim in reasonml/vim-reason
+au BufNewFile,BufRead .merlin       set ft=merlin
+  augroup end
+endif
+
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'reason') == -1
+  augroup filetypedetect
+  " reason, from reason.vim in reasonml/vim-reason
+" Copyright (c) 2015-present, Facebook, Inc. All rights reserved.
+
+au BufRead,BufNewFile *.re set filetype=reason
+au BufRead,BufNewFile *.rei set filetype=reason
+au BufNewFile,BufRead .merlin       set ft=merlin
+  augroup end
+endif
+
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'ruby') == -1
   augroup filetypedetect
   " ruby, from ruby_extra.vim in vim-ruby/vim-ruby
@@ -1181,7 +1236,7 @@ if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'toml') == -1
   augroup filetypedetect
   " toml, from toml.vim in cespare/vim-toml
 " Go dep and Rust use several TOML config files that are not named with .toml.
-autocmd BufNewFile,BufRead *.toml,Gopkg.lock,Cargo.lock,*/.cargo/config,*/.cargo/credentials,Pipfile set filetype=toml
+autocmd BufNewFile,BufRead *.toml,Gopkg.lock,Cargo.lock,*/.cargo/config,*/.cargo/credentials,Pipfile setf toml
   augroup end
 endif
 

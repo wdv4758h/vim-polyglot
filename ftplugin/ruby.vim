@@ -25,20 +25,20 @@ if exists("loaded_matchit") && !exists("b:match_words")
   let b:match_ignorecase = 0
 
   let b:match_words =
-	\ '\<\%(if\|unless\|case\|while\|until\|for\|do\|class\|module\|def\|begin\)\>=\@!' .
+	\ '\<\%(if\|unless\|case\|while\|until\|for\|do\|class\|module\|def\|=\@<!begin\)\>=\@!' .
 	\ ':' .
 	\ '\<\%(else\|elsif\|ensure\|when\|rescue\|break\|redo\|next\|retry\)\>' .
 	\ ':' .
-        \ '\%(^\|[^.\:@$]\)\@<=\<end\:\@!\>' .
+        \ '\%(^\|[^.\:@$=]\)\@<=\<end\:\@!\>' .
+        \ ',^=begin\>:^=end\>,' .
 	\ ',{:},\[:\],(:)'
 
   let b:match_skip =
 	\ "synIDattr(synID(line('.'),col('.'),0),'name') =~ '" .
-	\ "\\<ruby\\%(String\\|StringDelimiter\\|Character\\|Escape\\|" .
-        \ "Regexp\\|RegexpDelimiter\\|" .
-	\ "Interpolation\\|NoInterpolation\\|Comment\\|Documentation\\|" .
-	\ "ConditionalModifier\\|RepeatModifier\\|OptionalDo\\|" .
-	\ "Function\\|BlockArgument\\|KeywordAsMethod\\|ClassVariable\\|" .
+	\ "\\<ruby\\%(String\\|.\+Delimiter\\|Character\\|.\+Escape\\|" .
+        \ "Regexp\\|Interpolation\\|Comment\\|Documentation\\|" .
+	\ "ConditionalModifier\\|RepeatModifier\\|RescueModifier\\|OptionalDo\\|" .
+	\ "MethodName\\|BlockArgument\\|KeywordAsMethod\\|ClassVariable\\|" .
 	\ "InstanceVariable\\|GlobalVariable\\|Symbol\\)\\>'"
 endif
 
@@ -153,7 +153,7 @@ endif
 function! s:map(mode, flags, map) abort
   let from = matchstr(a:map, '\S\+')
   if empty(mapcheck(from, a:mode))
-    exe a:mode.'map' '<buffer>' a:map
+    exe a:mode.'map' '<buffer>' a:flags a:map
     let b:undo_ftplugin .= '|sil! '.a:mode.'unmap <buffer> '.from
   endif
 endfunction
